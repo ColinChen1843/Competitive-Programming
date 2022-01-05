@@ -1,85 +1,61 @@
 #include <bits/stdc++.h>
-using namespace std; 
 
-#pragma GCC optimize "Ofast"
+using namespace std;
 #define ll long long
-#define MOD 1e9+7
-#define fi first
-#define se second
-#define INF 0x3f3f3f3f
-#define MAX 1000005
-#define pb push_back
-#define LSB(S) (S & (-S))
-typedef pair<int, int> pii;
-typedef pair<int, pii> piii;
-typedef vector<int> vi;
-typedef vector<pii> vii;
-typedef vector<piii> viii;
+ll n, a, b, c, input;
+ll troops[1000001];
+vector<ll> slopes;
+vector<ll> y;
+ll dp[1000001];
 
-int N , a , b , c;
-int x[MAX];
-ll sum[MAX];
-ll dp[MAX];
-vector <ll> M;
-vector <ll> B;
-bool bad(ll l1,ll l2, ll l3)
-{
-        return (B[l3]-B[l1])*(M[l1]-M[l2])<(B[l2]-B[l1])*(M[l1]-M[l3]);
-}
-void add(long long m,long long b)
-{
-        M.push_back(m);
-        B.push_back(b);
-        while (M.size()>=3&&bad(M.size()-3,M.size()-2,M.size()-1))
-        {
-                M.erase(M.end()-2);
-                B.erase(B.end()-2);
-        }
-}
-int pointer;
-long long query(long long x)
-{
-        if (pointer >=M.size())
-                pointer=M.size()-1;
-        while (pointer<M.size()-1&&
-          M[pointer+1]*x+B[pointer+1]>M[pointer]*x+B[pointer])
-                pointer++;
-        return M[pointer]*x+B[pointer];
+bool valid_line(ll line1, ll line2, ll line3){
+
+  if((y[line3] - y[line1]) * (slopes[line1] - slopes[line2]) < (y[line2] - y[line1]) * (slopes[line1] - slopes[line3])) return true;
+
+  else return false;
+
 }
 
-ll adjust(ll x){
-    return a * (x * x) + b * x + c;
+void add_line(ll m, ll b){
+  
+  slopes.push_back(m);
+  y.push_back(b);
+  while(slopes.size() >= 3 && valid_line(slopes.size() - 3, slopes.size() - 2, slopes.size() - 1)){
+    slopes.erase(slopes.end() - 2);
+    y.erase(y.end() - 2);
+  }
+
+}
+ll poll;
+ll solve(ll x){
+  if(poll >= slopes.size()) poll = slopes.size() - 1;
+
+  while(poll < slopes.size() - 1 && slopes[poll + 1] * x + y[poll + 1] > slopes[poll]*x + y[poll]){
+    poll++;
+  }
+
+  return slopes[poll] * x + y[poll];
+
 }
 
-ll sqr(ll x){
-    return x*x;
-}
+int main() {
 
-/*
+  cin>>n>>a>>b>>c;
 
-    dp[i] = max(dp[i], adjust(i, j-1) + dp[j-1])
-          = dp[j-1] + a * sqr(sum[i]-sum[j-1]) + b * (sum[i]-sum[j-1]) + C
-          = dp[]
+  for(ll i = 1; i <= n; i++){
+    cin>>input;
+    troops[i] = troops[i - 1] + input;
+  }
 
-*/
+  dp[1] = (a * troops[1] * troops[1]) + (b * troops[1]) + c ;
+  add_line(-2*a*troops[1], dp[1] + a*troops[1]*troops[1]-b*troops[1]);
+  for(ll i = 2; i <= n; i++){
 
-int main(){
-    ios_base::sync_with_stdio(0); cin.tie(NULL);  cout.tie(NULL);
-    //freopen("input.txt", "r", stdin);
-    //freopen("output.txt", "w", stdout);
-    cin >> N >> a >> b >> c;
-    for(int i=1; i<=N; i++){
-        cin >> sum[i];
-        if(i>1) sum[i] += sum[i-1];
-    }
-    dp[1] = adjust(sum[1]);
-    add(-2*a*sum[1], dp[1]+(a*(sum[1]*sum[1]))-(b*sum[1]));
-    for(int i=2; i<=N; i++){
-        dp[i] = a*sum[i]*sum[i]+b*sum[i]+c;
-        dp[i] = max(dp[i],query(sum[i]) + (a*(sum[i]*sum[i]))+(b*sum[i])+c);
-        add(-2*a*sum[i], dp[i]+(a*(sum[i]*sum[i]))-(b*sum[i]));
-    }
-    cout << dp[N] << "\n";
+    dp[i] = max((a * troops[i] * troops[i]) + (b * troops[i]) + c,  b * troops[i] + a * troops[i] * troops[i] + c + solve(troops[i]));
+    add_line(-2*a*troops[i], dp[i] + (a*troops[i]*troops[i])- (b * troops[i]));
 
+  }
+
+  cout<<dp[n]<<endl;
     return 0;
 }
